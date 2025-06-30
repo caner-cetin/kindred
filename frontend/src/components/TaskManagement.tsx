@@ -116,13 +116,14 @@ export function TaskManagement() {
               <div>
                 <Label htmlFor="create-priority">Priority</Label>
                 <Select
-                  value={createForm.priority_id?.toString() || ''}
-                  onValueChange={(value) => setCreateForm({ ...createForm, priority_id: value ? parseInt(value) : undefined })}
+                  value={createForm.priority_id?.toString() || 'no-priority'}
+                  onValueChange={(value) => setCreateForm({ ...createForm, priority_id: value === 'no-priority' ? undefined : parseInt(value) })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="no-priority">No Priority</SelectItem>
                     {metadata?.priorities.map((priority) => (
                       <SelectItem key={priority.id} value={priority.id.toString()}>
                         {priority.name}
@@ -130,19 +131,17 @@ export function TaskManagement() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div>
+              </div>                <div>
                 <Label htmlFor="create-assignee">Assign To</Label>
                 <Select
-                  value={createForm.assignee_id?.toString() || user?.id?.toString() || ''}
-                  onValueChange={(value) => setCreateForm({ ...createForm, assignee_id: value ? parseInt(value) : undefined })}
+                  value={createForm.assignee_id?.toString() || "unassigned"}
+                  onValueChange={(value) => setCreateForm({ ...createForm, assignee_id: value === "unassigned" ? undefined : parseInt(value) })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select assignee" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
                     {metadata?.users.map((assignee) => (
                       <SelectItem key={assignee.id} value={assignee.id.toString()}>
                         {assignee.full_name || assignee.username} ({assignee.username})
@@ -392,14 +391,14 @@ export function TaskManagement() {
               <div>
                 <Label htmlFor="edit-assignee">Assign To</Label>
                 <Select
-                  value={editForm.assignee_id?.toString() || ''}
-                  onValueChange={(value) => setEditForm({ ...editForm, assignee_id: value ? parseInt(value) : undefined })}
+                  value={editForm.assignee_id?.toString() || "unassigned"}
+                  onValueChange={(value) => setEditForm({ ...editForm, assignee_id: value === "unassigned" ? undefined : parseInt(value) })}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select assignee" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Unassigned</SelectItem>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
                     {metadata?.users.map((assignee) => (
                       <SelectItem key={assignee.id} value={assignee.id.toString()}>
                         {assignee.full_name || assignee.username} ({assignee.username})
