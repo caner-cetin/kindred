@@ -1,8 +1,4 @@
-export type TaskEventType = 
-  | 'TASK_CREATED'
-  | 'TASK_UPDATED' 
-  | 'TASK_STATUS_CHANGED'
-  | 'TASK_DELETED';
+export type TaskEventType = "TASK_CREATED" | "TASK_UPDATED" | "TASK_STATUS_CHANGED" | "TASK_DELETED";
 
 export interface TaskEvent {
   type: TaskEventType;
@@ -13,7 +9,7 @@ export interface TaskEvent {
 }
 
 export interface WebSocketMessage {
-  type: TaskEventType | 'auth';
+  type: TaskEventType | "auth";
   data?: TaskEvent;
   status?: string;
   userId?: number;
@@ -33,10 +29,10 @@ class WebSocketService {
 
   constructor() {
     // Initialize event handler maps
-    this.eventHandlers.set('TASK_CREATED', []);
-    this.eventHandlers.set('TASK_UPDATED', []);
-    this.eventHandlers.set('TASK_STATUS_CHANGED', []);
-    this.eventHandlers.set('TASK_DELETED', []);
+    this.eventHandlers.set("TASK_CREATED", []);
+    this.eventHandlers.set("TASK_UPDATED", []);
+    this.eventHandlers.set("TASK_STATUS_CHANGED", []);
+    this.eventHandlers.set("TASK_DELETED", []);
   }
 
   connect(token: string) {
@@ -45,28 +41,30 @@ class WebSocketService {
     }
 
     this.authToken = token;
-    const wsUrl = `ws://localhost:3000/ws`;
-    
+    const wsUrl = `ws://track.cansu.dev/ws`;
+
     try {
       this.ws = new WebSocket(wsUrl);
-      
+
       this.ws.onopen = () => {
         this.isConnected = true;
         this.reconnectAttempts = 0;
-        
+
         // Authenticate
-        this.ws?.send(JSON.stringify({
-          type: 'auth',
-          token: this.authToken
-        }));
+        this.ws?.send(
+          JSON.stringify({
+            type: "auth",
+            token: this.authToken,
+          })
+        );
       };
 
       this.ws.onmessage = (event) => {
         try {
           const message: WebSocketMessage = JSON.parse(event.data);
-          
-          if (message.type === 'auth') {
-            if (message.status !== 'authenticated') {
+
+          if (message.type === "auth") {
+            if (message.status !== "authenticated") {
               this.disconnect();
             }
             return;
@@ -75,7 +73,7 @@ class WebSocketService {
           // Handle task events
           if (message.data && this.eventHandlers.has(message.type as TaskEventType)) {
             const handlers = this.eventHandlers.get(message.type as TaskEventType) || [];
-            handlers.forEach(handler => handler(message.data!));
+            handlers.forEach((handler) => handler(message.data!));
           }
         } catch (error) {
           // Error parsing WebSocket message
@@ -90,7 +88,6 @@ class WebSocketService {
       this.ws.onerror = () => {
         this.isConnected = false;
       };
-
     } catch (error) {
       this.scheduleReconnect();
     }
@@ -106,7 +103,7 @@ class WebSocketService {
     }
 
     const delay = this.reconnectInterval * Math.pow(2, this.reconnectAttempts);
-    
+
     this.reconnectTimeoutId = setTimeout(() => {
       this.reconnectAttempts++;
       if (this.authToken) {
