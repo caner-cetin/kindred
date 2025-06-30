@@ -54,6 +54,16 @@ export const resetCreateFormAtom = atom(null, (_get, set) => {
   });
 });
 
+export const initializeCreateFormAtom = atom(null, (_get, set, currentUserId?: number) => {
+  set(createFormAtom, {
+    title: "",
+    description: "",
+    priority_id: undefined,
+    assignee_id: currentUserId,
+    due_date: "",
+  });
+});
+
 export const setEditFormFromTaskAtom = atom(null, (get, set, task: Task) => {
   const metadata = get(metadataAtom);
   set(editFormAtom, {

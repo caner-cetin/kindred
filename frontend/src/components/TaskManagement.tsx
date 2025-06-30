@@ -3,7 +3,7 @@ import { Plus, Calendar, User, AlertCircle, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,6 +36,7 @@ export function TaskManagement() {
     initializeData,
     loadTasks,
     openEditDialog,
+    openCreateDialog,
     handleCreateTask,
     handleUpdateTask,
     handleDeleteTask,
@@ -75,83 +76,103 @@ export function TaskManagement() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
-          <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
+          <Button onClick={() => openCreateDialog(user?.id)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Task
+          </Button>
+        </div>
+
+        {/* Create Task Dialog */}
+        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Create New Task</DialogTitle>
+              <DialogDescription>
+                Add a new task to your project.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="create-title">Title</Label>
+                <Input
+                  id="create-title"
+                  value={createForm.title}
+                  onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+                  placeholder="Task title"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="create-description">Description</Label>
+                <Input
+                  id="create-description"
+                  value={createForm.description}
+                  onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+                  placeholder="Task description (optional)"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="create-priority">Priority</Label>
+                <Select
+                  value={createForm.priority_id?.toString() || ''}
+                  onValueChange={(value) => setCreateForm({ ...createForm, priority_id: value ? parseInt(value) : undefined })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {metadata?.priorities.map((priority) => (
+                      <SelectItem key={priority.id} value={priority.id.toString()}>
+                        {priority.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="create-assignee">Assign To</Label>
+                <Select
+                  value={createForm.assignee_id?.toString() || user?.id?.toString() || ''}
+                  onValueChange={(value) => setCreateForm({ ...createForm, assignee_id: value ? parseInt(value) : undefined })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select assignee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Unassigned</SelectItem>
+                    {metadata?.users.map((assignee) => (
+                      <SelectItem key={assignee.id} value={assignee.id.toString()}>
+                        {assignee.full_name || assignee.username} ({assignee.username})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="create-due-date">Due Date</Label>
+                <Input
+                  id="create-due-date"
+                  type="date"
+                  value={createForm.due_date}
+                  onChange={(e) => setCreateForm({ ...createForm, due_date: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2 mt-6">
+              <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateTask} disabled={!createForm.title.trim()}>
                 Create Task
               </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Create New Task</DialogTitle>
-                <DialogDescription>
-                  Add a new task to your project.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="create-title">Title</Label>
-                  <Input
-                    id="create-title"
-                    value={createForm.title}
-                    onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
-                    placeholder="Task title"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="create-description">Description</Label>
-                  <Input
-                    id="create-description"
-                    value={createForm.description}
-                    onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
-                    placeholder="Task description (optional)"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="create-priority">Priority</Label>
-                  <Select
-                    value={createForm.priority_id?.toString() || ''}
-                    onValueChange={(value) => setCreateForm({ ...createForm, priority_id: value ? parseInt(value) : undefined })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {metadata?.priorities.map((priority) => (
-                        <SelectItem key={priority.id} value={priority.id.toString()}>
-                          {priority.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="create-due-date">Due Date</Label>
-                  <Input
-                    id="create-due-date"
-                    type="date"
-                    value={createForm.due_date}
-                    onChange={(e) => setCreateForm({ ...createForm, due_date: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-2 mt-6">
-                <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleCreateTask} disabled={!createForm.title.trim()}>
-                  Create Task
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Stats */}
         <div className="mb-6 sm:mb-8">
@@ -362,6 +383,26 @@ export function TaskManagement() {
                     {metadata?.priorities.map((priority) => (
                       <SelectItem key={priority.id} value={priority.id.toString()}>
                         {priority.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="edit-assignee">Assign To</Label>
+                <Select
+                  value={editForm.assignee_id?.toString() || ''}
+                  onValueChange={(value) => setEditForm({ ...editForm, assignee_id: value ? parseInt(value) : undefined })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select assignee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Unassigned</SelectItem>
+                    {metadata?.users.map((assignee) => (
+                      <SelectItem key={assignee.id} value={assignee.id.toString()}>
+                        {assignee.full_name || assignee.username} ({assignee.username})
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -25,9 +25,17 @@ export interface Status {
   name: string;
 }
 
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  full_name?: string;
+}
+
 export interface TaskMetadata {
   priorities: Priority[];
   statuses: Status[];
+  users: User[];
 }
 
 export interface CreateTaskData {

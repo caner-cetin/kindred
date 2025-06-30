@@ -10,6 +10,7 @@ import {
   createFormAtom,
   editFormAtom,
   setEditFormFromTaskAtom,
+  initializeCreateFormAtom,
 } from "@/store/taskStore";
 import { createTaskAtom, updateTaskAtom, deleteTaskAtom, updateTaskStatusAtom, initializeDataAtom, loadTasksAtom } from "@/store/taskActions";
 import type { Task } from "@/types/tasks";
@@ -33,10 +34,16 @@ export function useTaskManagement() {
   const deleteTask = useSetAtom(deleteTaskAtom);
   const updateTaskStatus = useSetAtom(updateTaskStatusAtom);
   const setEditFormFromTask = useSetAtom(setEditFormFromTaskAtom);
+  const initializeCreateForm = useSetAtom(initializeCreateFormAtom);
 
   const openEditDialog = (task: Task) => {
     setEditFormFromTask(task);
     setEditDialogOpen(true);
+  };
+
+  const openCreateDialog = (currentUserId?: number) => {
+    initializeCreateForm(currentUserId);
+    setCreateDialogOpen(true);
   };
 
   const handleCreateTask = () => {
@@ -75,6 +82,7 @@ export function useTaskManagement() {
     initializeData,
     loadTasks,
     openEditDialog,
+    openCreateDialog,
     handleCreateTask,
     handleUpdateTask,
     handleDeleteTask,
