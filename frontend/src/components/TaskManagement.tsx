@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Plus, Calendar, User, AlertCircle, Edit, Trash2, ArrowLeft } from 'lucide-react';
+import { Plus, Calendar, User, AlertCircle, Edit, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,13 +11,13 @@ import { useTaskManagement } from '@/hooks/useTaskManagement';
 import { TaskStats } from '@/components/TaskStats';
 
 const priorityColors = {
-  'Low': 'bg-green-100 text-green-800 border border-green-200',
-  'Medium': 'bg-orange-100 text-orange-800 border border-orange-200',
-  'High': 'bg-red-100 text-red-800 border border-red-200',
-  'Critical': 'bg-purple-100 text-purple-800 border border-purple-200',
+  'Low': 'bg-green-100 text-green-800 border border-green-200 dark:bg-green-950 dark:text-green-100 dark:border-green-800',
+  'Medium': 'bg-yellow-100 text-yellow-800 border border-yellow-200 dark:bg-yellow-950 dark:text-yellow-100 dark:border-yellow-800',
+  'High': 'bg-orange-100 text-orange-800 border border-orange-200 dark:bg-orange-950 dark:text-orange-100 dark:border-orange-800',
+  'Critical': 'bg-red-100 text-red-800 border border-red-200 dark:bg-red-950 dark:text-red-100 dark:border-red-800',
 };
 
-export function TaskManagement({ onBack }: { onBack?: () => void }) {
+export function TaskManagement() {
   const { user } = useAuth();
   const {
     tasks,
@@ -71,23 +71,10 @@ export function TaskManagement({ onBack }: { onBack?: () => void }) {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-background p-2 sm:p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
-            {onBack && (
-              <Button variant="ghost" onClick={onBack}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-            )}
-            <div>
-              <h1 className="text-3xl font-bold">Task Management</h1>
-              <p className="text-muted-foreground">Manage your tasks and track progress</p>
-            </div>
-          </div>
-
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
           <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
             <DialogTrigger asChild>
               <Button>
@@ -167,14 +154,14 @@ export function TaskManagement({ onBack }: { onBack?: () => void }) {
         </div>
 
         {/* Stats */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <TaskStats />
         </div>
 
         {/* Filters */}
-        <div className="flex gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4 sm:mb-6">
           <Select value={filters.status || 'all-statuses'} onValueChange={(value) => setFilters({ ...filters, status: value === 'all-statuses' ? '' : value })}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -188,7 +175,7 @@ export function TaskManagement({ onBack }: { onBack?: () => void }) {
           </Select>
 
           <Select value={filters.priority || 'all-priorities'} onValueChange={(value) => setFilters({ ...filters, priority: value === 'all-priorities' ? '' : value })}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Priority" />
             </SelectTrigger>
             <SelectContent>
@@ -202,7 +189,7 @@ export function TaskManagement({ onBack }: { onBack?: () => void }) {
           </Select>
 
           <Select value={filters.assignee || 'all-tasks'} onValueChange={(value) => setFilters({ ...filters, assignee: value === 'all-tasks' ? '' : value })}>
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Assignee" />
             </SelectTrigger>
             <SelectContent>
@@ -217,6 +204,7 @@ export function TaskManagement({ onBack }: { onBack?: () => void }) {
             <Button
               variant="outline"
               onClick={() => setFilters({ status: '', priority: '', assignee: '' })}
+              className="w-full sm:w-auto"
             >
               Clear Filters
             </Button>
@@ -224,7 +212,7 @@ export function TaskManagement({ onBack }: { onBack?: () => void }) {
         </div>
 
         {/* Tasks List */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {tasks.length === 0 ? (
             <Card>
               <CardContent className="text-center py-8">
@@ -234,54 +222,57 @@ export function TaskManagement({ onBack }: { onBack?: () => void }) {
           ) : (
             tasks.map((task) => (
               <Card key={task.id} className="relative">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="text-lg font-semibold">{task.title}</h3>
-                        {task.priority && (
-                          <span className={`px-2 py-1 rounded-full text-xs ${priorityColors[task.priority as keyof typeof priorityColors] || 'bg-gray-100 text-gray-800'}`}>
-                            {task.priority}
-                          </span>
-                        )}
-                        {task.due_date && isOverdue(task.due_date) && task.status !== 'Completed' && (
-                          <span className="flex items-center text-red-600 text-xs">
-                            <AlertCircle className="h-3 w-3 mr-1" />
-                            Overdue
-                          </span>
-                        )}
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                        <h3 className="text-base sm:text-lg font-semibold truncate">{task.title}</h3>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          {task.priority && (
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityColors[task.priority as keyof typeof priorityColors] || 'bg-gray-100 text-gray-800'}`}>
+                              {task.priority}
+                            </span>
+                          )}
+                          {task.due_date && isOverdue(task.due_date) && task.status !== 'Completed' && (
+                            <span className="flex items-center text-red-600 text-xs">
+                              <AlertCircle className="h-3 w-3 mr-1" />
+                              <span className="hidden sm:inline">Overdue</span>
+                              <span className="sm:hidden">!</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       {task.description && (
-                        <p className="text-muted-foreground mb-3">{task.description}</p>
+                        <p className="text-muted-foreground mb-3 text-sm sm:text-base line-clamp-2">{task.description}</p>
                       )}
 
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                         <div className="flex items-center gap-1">
-                          <User className="h-3 w-3" />
-                          Created by {task.creator_username}
+                          <User className="h-3 w-3 flex-shrink-0" />
+                          <span className="truncate">Created by {task.creator_username}</span>
                         </div>
                         {task.assignee_username && (
                           <div className="flex items-center gap-1">
-                            <User className="h-3 w-3" />
-                            Assigned to {task.assignee_username}
+                            <User className="h-3 w-3 flex-shrink-0" />
+                            <span className="truncate">Assigned to {task.assignee_username}</span>
                           </div>
                         )}
                         {task.due_date && (
                           <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            Due {formatDate(task.due_date)}
+                            <Calendar className="h-3 w-3 flex-shrink-0" />
+                            <span>Due {formatDate(task.due_date)}</span>
                           </div>
                         )}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                       <Select
                         value={task.status}
                         onValueChange={(value) => handleStatusChange(task.id, value)}
                       >
-                        <SelectTrigger className="w-[130px]">
+                        <SelectTrigger className="w-full sm:w-[130px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -294,13 +285,15 @@ export function TaskManagement({ onBack }: { onBack?: () => void }) {
                       </Select>
 
                       {(task.creator_id === user?.id || task.assignee_id === user?.id) && (
-                        <div className="flex gap-1">
+                        <div className="flex gap-1 justify-end sm:justify-start">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => openEditDialog(task)}
+                            className="flex-1 sm:flex-none"
                           >
                             <Edit className="h-4 w-4" />
+                            <span className="ml-1 sm:hidden">Edit</span>
                           </Button>
 
                           {task.creator_id === user?.id && (
@@ -308,8 +301,10 @@ export function TaskManagement({ onBack }: { onBack?: () => void }) {
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDeleteTask(task.id)}
+                              className="flex-1 sm:flex-none text-destructive hover:text-destructive"
                             >
                               <Trash2 className="h-4 w-4" />
+                              <span className="ml-1 sm:hidden">Delete</span>
                             </Button>
                           )}
                         </div>

@@ -1,85 +1,72 @@
-import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { TaskManagement } from '@/components/TaskManagement';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { User, Settings } from 'lucide-react';
 
 export function Dashboard() {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
-
-  if (activeTab === 'tasks') {
-    return <TaskManagement onBack={() => setActiveTab('overview')} />;
-  }
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Welcome back, {user?.fullName || user?.username}!</h1>
-            <p className="text-muted-foreground">Manage your tasks and projects</p>
-          </div>
-          <Button variant="outline" onClick={logout}>
-            Sign Out
-          </Button>
-        </div>
-
-        <div className="flex gap-4 mb-8">
-          <Button
-            variant={activeTab === 'overview' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('overview')}
-          >
-            Overview
-          </Button>
-          <Button
-            variant={activeTab === 'tasks' ? 'default' : 'outline'}
-            onClick={() => setActiveTab('tasks')}
-          >
-            Tasks
-          </Button>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <Card data-card>
-            <CardHeader>
-              <CardTitle>Profile</CardTitle>
-              <CardDescription>Your account information</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p><strong>Username:</strong> {user?.username}</p>
-                <p><strong>Email:</strong> {user?.email}</p>
-                {user?.fullName && <p><strong>Full Name:</strong> {user.fullName}</p>}
-                {user?.createdAt && (
-                  <p><strong>Member Since:</strong> {new Date(user.createdAt).toLocaleDateString()}</p>
-                )}
+    <div className="min-h-screen bg-background">
+      <div className="sticky top-0 z-40 border-b bg-card/80 backdrop-blur-md supports-[backdrop-filter]:bg-card/80 shadow-sm">
+        <div className="max-w-6xl mx-auto p-3 sm:p-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div>
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold">Kindred</h1>
+                  <p className="text-muted-foreground text-sm sm:text-base">Task Scheduler</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card data-card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('tasks')}>
-            <CardHeader>
-              <CardTitle>Tasks</CardTitle>
-              <CardDescription>Manage your tasks and projects</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground mb-4">Click here to manage your tasks, create new ones, and track progress.</p>
-              <Button className="w-full">Go to Tasks</Button>
-            </CardContent>
-          </Card>
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Profile Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-1 sm:gap-2">
+                    <User className="h-4 w-4" />
+                    <span className="hidden sm:inline">{user?.username}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem disabled>
+                    <strong>Username:</strong> {user?.username}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem disabled>
+                    <strong>Email:</strong> {user?.email}
+                  </DropdownMenuItem>
+                  {user?.fullName && (
+                    <DropdownMenuItem disabled>
+                      <strong>Name:</strong> {user.fullName}
+                    </DropdownMenuItem>
+                  )}
+                  {user?.createdAt && (
+                    <DropdownMenuItem disabled>
+                      <strong>Member since:</strong> {new Date(user.createdAt).toLocaleDateString()}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
-          <Card data-card>
-            <CardHeader>
-              <CardTitle>Projects</CardTitle>
-              <CardDescription>Your project overview</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">Project management coming soon...</p>
-            </CardContent>
-          </Card>
+              <Button variant="outline" onClick={logout}>
+                Sign Out
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Main Content - TaskManagement */}
+      <TaskManagement />
     </div>
   );
 }

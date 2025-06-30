@@ -13,37 +13,37 @@ export function TaskStats() {
       title: 'Total Tasks',
       value: taskCounts.total,
       icon: ListTodo,
-      color: 'text-blue-600',
+      color: 'text-primary',
     },
     {
       title: 'To Do',
       value: taskCounts['To Do'],
       icon: Clock,
-      color: 'text-gray-600',
+      color: 'text-muted-foreground',
     },
     {
       title: 'In Progress',
       value: taskCounts['In Progress'],
       icon: Clock,
-      color: 'text-yellow-600',
+      color: 'text-accent',
     },
     {
       title: 'Completed',
       value: taskCounts.Completed,
       icon: CheckCircle,
-      color: 'text-green-600',
+      color: 'text-green-600 dark:text-green-400',
     },
     {
       title: 'Overdue',
       value: overdueTasks.length,
       icon: AlertTriangle,
-      color: 'text-red-600',
+      color: 'text-destructive',
     },
     {
       title: 'High Priority',
       value: priorityTasks.length,
       icon: AlertTriangle,
-      color: 'text-orange-600',
+      color: 'text-accent',
     },
   ];
 
