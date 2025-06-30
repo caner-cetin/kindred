@@ -195,7 +195,7 @@ export const deleteTaskAtom = atom(null, async (_get, set, taskId: number) => {
 
   try {
     await makeAuthenticatedRequest(() =>
-      api.tasks({ id: taskId.toString() }).delete({
+      api.tasks({ id: taskId.toString() }).delete(undefined, {
         headers: getAuthHeaders(),
       })
     );
