@@ -27,7 +27,7 @@ services:
       context: .
       dockerfile: ./frontend/Dockerfile
       args:
-        - VITE_API_URL=https://track-api.cansu.dev/
+        - VITE_API_URL=https://apitrack.cansu.dev/
     ports:
       - "19120:80"
     networks:
