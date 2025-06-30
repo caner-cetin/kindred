@@ -4,7 +4,9 @@ WORKDIR /app
 
 COPY package.json bun.lock* ./
 RUN bun install --frozen-lockfile
-COPY . .
+COPY ./frontend ./frontend
+COPY ./backend ./backend
+WORKDIR /app/frontend
 
 ARG VITE_API_URL=http://localhost:3001
 ENV VITE_API_URL=$VITE_API_URL
