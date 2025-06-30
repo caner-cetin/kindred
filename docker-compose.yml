@@ -1,10 +1,10 @@
 services:
-  backend:
+  kindred-backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "3001:3000"
+      - "19199:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -13,6 +13,8 @@ services:
       - JWT_REFRESH_SECRET=your-super-secret-refresh-key
     volumes:
       - backend_data:/app/db/
+    networks:
+      - kindred_bridge
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/tasks/metadata"]
@@ -25,9 +27,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=http://localhost:3001
+        - VITE_API_URL=http://kindred-backend:19199
     ports:
-      - "3000:80"
+      - "19120:80"
+    networks:
+      - kindred_bridge
     depends_on:
       - backend
     restart: unless-stopped
@@ -40,3 +44,6 @@ services:
 volumes:
   backend_data:
     driver: local
+
+networks:
+  kindred_bridge:
