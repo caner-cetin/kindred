@@ -33,7 +33,7 @@ services:
     networks:
       - kindred_bridge
     depends_on:
-      - backend
+      - kindred-backend
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80"]
