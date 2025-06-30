@@ -1,4 +1,5 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useEffect } from "react";
 import {
   tasksAtom,
   metadataAtom,
@@ -12,7 +13,7 @@ import {
   setEditFormFromTaskAtom,
   initializeCreateFormAtom,
 } from "@/store/taskStore";
-import { createTaskAtom, updateTaskAtom, deleteTaskAtom, updateTaskStatusAtom, initializeDataAtom, loadTasksAtom } from "@/store/taskActions";
+import { createTaskAtom, updateTaskAtom, deleteTaskAtom, updateTaskStatusAtom, initializeDataAtom, loadTasksAtom, setupWebSocketListenersAtom } from "@/store/taskActions";
 import type { Task } from "@/types/tasks";
 
 export function useTaskManagement() {
@@ -35,6 +36,7 @@ export function useTaskManagement() {
   const updateTaskStatus = useSetAtom(updateTaskStatusAtom);
   const setEditFormFromTask = useSetAtom(setEditFormFromTaskAtom);
   const initializeCreateForm = useSetAtom(initializeCreateFormAtom);
+  const setupWebSocketListeners = useSetAtom(setupWebSocketListenersAtom);
 
   const openEditDialog = (task: Task) => {
     setEditFormFromTask(task);
@@ -61,6 +63,11 @@ export function useTaskManagement() {
   const handleStatusChange = (taskId: number, newStatus: string) => {
     updateTaskStatus({ taskId, newStatus });
   };
+
+  // Setup WebSocket listeners when hook initializes
+  useEffect(() => {
+    setupWebSocketListeners();
+  }, [setupWebSocketListeners]);
 
   return {
     tasks,

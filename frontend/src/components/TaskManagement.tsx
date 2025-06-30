@@ -236,7 +236,7 @@ export function TaskManagement() {
           {tasks.length === 0 ? (
             <Card>
               <CardContent className="text-center py-8">
-                <p className="text-muted-foreground">No tasks found. Create your first task to get started!</p>
+                <p className="text-muted-foreground">No tasks found.</p>
               </CardContent>
             </Card>
           ) : (

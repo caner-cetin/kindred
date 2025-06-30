@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useState, useCallback, type React
 import type { AuthContextType, User, LoginCredentials, SignupCredentials } from '@/types/auth';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
+import { webSocketService } from '@/services/websocket';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -25,6 +26,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(() => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    webSocketService.disconnect();
     setUser(null);
     toast.success('Logged out successfully');
   }, []);
@@ -71,6 +73,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
           if (data && 'id' in data && 'username' in data && 'email' in data) {
             setUser(data as unknown as User);
+            // Connect to WebSocket when user is authenticated
+            webSocketService.connect(accessToken);
           } else if (error?.status === 401) {
             // Try to refresh the token
             try {
@@ -83,6 +87,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
               });
               if (retryResponse.data && 'id' in retryResponse.data && 'username' in retryResponse.data && 'email' in retryResponse.data) {
                 setUser(retryResponse.data as unknown as User);
+                // Connect to WebSocket with refreshed token
+                const newAccessToken = localStorage.getItem('accessToken');
+                if (newAccessToken) {
+                  webSocketService.connect(newAccessToken);
+                }
               }
             } catch {
               localStorage.removeItem('accessToken');
@@ -114,6 +123,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
         setUser(data.user as unknown as User);
+        // Connect to WebSocket on login
+        webSocketService.connect(data.accessToken);
         toast.success(`Welcome back, ${data.user.username}!`);
       }
     } catch (error) {
@@ -137,6 +148,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
         setUser(data.user as unknown as User);
+        // Connect to WebSocket on signup
+        webSocketService.connect(data.accessToken);
         toast.success(`Welcome, ${data.user.username}! Account created successfully.`);
       }
     } catch (error) {

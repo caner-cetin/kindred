@@ -13,7 +13,9 @@ import {
   editDialogOpenAtom,
   resetCreateFormAtom,
 } from "./taskStore";
-import type { TaskListResponse, TaskMetadata, CreateTaskData, UpdateTaskData } from "@/types/tasks";
+import type { TaskListResponse, TaskMetadata, CreateTaskData, UpdateTaskData, Task } from "@/types/tasks";
+import { webSocketService } from "@/services/websocket";
+import type { TaskEvent } from "@/services/websocket";
 
 const refreshAccessToken = async () => {
   const refreshTokenValue = localStorage.getItem("refreshToken");
@@ -109,6 +111,33 @@ export const loadMetadataAtom = atom(null, async (_get, set) => {
   }
 });
 
+// Load only stats without affecting the current task list
+export const loadStatsOnlyAtom = atom(null, async (get, set) => {
+  try {
+    const filters = get(filtersAtom);
+    const query: Record<string, string> = {};
+
+    if (filters.status) query.status = filters.status;
+    if (filters.priority) query.priority = filters.priority;
+    if (filters.assignee) query.assignee = filters.assignee;
+
+    const response = await makeAuthenticatedRequest(() =>
+      api.tasks.get({
+        query,
+        headers: getAuthHeaders(),
+      })
+    );
+
+    if (response.data) {
+      const data = response.data as TaskListResponse;
+      // Only update stats, not the tasks themselves
+      set(statsAtom, data.stats);
+    }
+  } catch (error) {
+    console.error("Failed to load stats:", error);
+  }
+});
+
 export const createTaskAtom = atom(null, async (get, set) => {
   try {
     const createForm = get(createFormAtom);
@@ -126,7 +155,7 @@ export const createTaskAtom = atom(null, async (get, set) => {
     if (response.data) {
       set(createDialogOpenAtom, false);
       set(resetCreateFormAtom);
-      set(loadTasksAtom);
+      // Don't reload - WebSocket will handle the update
     }
   } catch (error) {
     console.error("Failed to create task:", error);
@@ -154,7 +183,7 @@ export const updateTaskAtom = atom(null, async (get, set) => {
     if (response.data) {
       set(editDialogOpenAtom, false);
       set(selectedTaskAtom, null);
-      set(loadTasksAtom);
+      // Don't reload - WebSocket will handle the update
     }
   } catch (error) {
     console.error("Failed to update task:", error);
@@ -170,7 +199,7 @@ export const deleteTaskAtom = atom(null, async (_get, set, taskId: number) => {
         headers: getAuthHeaders(),
       })
     );
-    set(loadTasksAtom);
+    // Don't reload - WebSocket will handle the update
   } catch (error) {
     console.error("Failed to delete task:", error);
   }
@@ -188,13 +217,134 @@ export const updateTaskStatusAtom = atom(null, async (_get, set, { taskId, newSt
         }
       )
     );
-    set(loadTasksAtom);
+    // Don't reload - WebSocket will handle the update
   } catch (error) {
     console.error("Failed to update task status:", error);
+    // On error, reload to get the correct state
+    set(loadTasksAtom);
   }
 });
 
 export const initializeDataAtom = atom(null, async (_get, set) => {
   set(loadTasksAtom);
   set(loadMetadataAtom);
+});
+
+const convertBackendTaskToFrontend = (backendTask: {
+  id: number;
+  title: string;
+  description?: string;
+  due_date?: string;
+  status: string;
+  priority?: string;
+  creator_id: number;
+  assignee_id?: number;
+  creator_username: string;
+  assignee_username?: string;
+  created_at: string;
+  updated_at: string;
+}): Task => {
+  return {
+    id: backendTask.id,
+    title: backendTask.title,
+    description: backendTask.description || '',
+    due_date: backendTask.due_date,
+    status: backendTask.status,
+    priority: backendTask.priority,
+    creator_id: backendTask.creator_id,
+    assignee_id: backendTask.assignee_id,
+    creator_username: backendTask.creator_username,
+    assignee_username: backendTask.assignee_username,
+    created_at: backendTask.created_at,
+    updated_at: backendTask.updated_at,
+  };
+};
+
+const handleTaskCreated = (get: Function, set: Function) => (event: TaskEvent) => {
+  if (!event.task) return;
+  
+  const currentTasks = get(tasksAtom);
+  const newTask = convertBackendTaskToFrontend(event.task);
+  set(tasksAtom, [...currentTasks, newTask]);
+  
+  // Only refresh stats, not the full task list
+  set(loadStatsOnlyAtom);
+};
+
+const handleTaskUpdated = (get: Function, set: Function) => (event: TaskEvent) => {
+  if (!event.task) return;
+  
+  const currentTasks = get(tasksAtom);
+  const updatedTask = convertBackendTaskToFrontend(event.task);
+  
+  const updatedTasks = currentTasks.map((task: Task) => 
+    task.id === event.taskId ? updatedTask : task
+  );
+  
+  set(tasksAtom, updatedTasks);
+  
+  // Only refresh stats, not the full task list
+  set(loadStatsOnlyAtom);
+};
+
+const handleTaskStatusChanged = (get: Function, set: Function) => (event: TaskEvent) => {
+  if (!event.task) return;
+  
+  const currentTasks = get(tasksAtom);
+  const updatedTask = convertBackendTaskToFrontend(event.task);
+  
+  const updatedTasks = currentTasks.map((task: Task) => 
+    task.id === event.taskId ? updatedTask : task
+  );
+  
+  set(tasksAtom, updatedTasks);
+  
+  // Only refresh stats, not the full task list
+  set(loadStatsOnlyAtom);
+};
+
+const handleTaskDeleted = (get: Function, set: Function) => (event: TaskEvent) => {
+  const currentTasks = get(tasksAtom);
+  const filteredTasks = currentTasks.filter((task: Task) => task.id !== event.taskId);
+  set(tasksAtom, filteredTasks);
+  
+  // Only refresh stats, not the full task list
+  set(loadStatsOnlyAtom);
+};
+
+// Store handler references to enable cleanup
+let currentHandlers: {
+  taskCreated?: (event: TaskEvent) => void;
+  taskUpdated?: (event: TaskEvent) => void;
+  taskStatusChanged?: (event: TaskEvent) => void;
+  taskDeleted?: (event: TaskEvent) => void;
+} = {};
+
+// Atom to setup WebSocket listeners
+export const setupWebSocketListenersAtom = atom(null, (get, set) => {
+  // Remove existing listeners first
+  if (currentHandlers.taskCreated) {
+    webSocketService.removeEventListener('TASK_CREATED', currentHandlers.taskCreated);
+  }
+  if (currentHandlers.taskUpdated) {
+    webSocketService.removeEventListener('TASK_UPDATED', currentHandlers.taskUpdated);
+  }
+  if (currentHandlers.taskStatusChanged) {
+    webSocketService.removeEventListener('TASK_STATUS_CHANGED', currentHandlers.taskStatusChanged);
+  }
+  if (currentHandlers.taskDeleted) {
+    webSocketService.removeEventListener('TASK_DELETED', currentHandlers.taskDeleted);
+  }
+  
+  // Create new handlers
+  currentHandlers.taskCreated = handleTaskCreated(get, set);
+  currentHandlers.taskUpdated = handleTaskUpdated(get, set);
+  currentHandlers.taskStatusChanged = handleTaskStatusChanged(get, set);
+  currentHandlers.taskDeleted = handleTaskDeleted(get, set);
+  
+  // Add event listeners
+  webSocketService.addEventListener('TASK_CREATED', currentHandlers.taskCreated);
+  webSocketService.addEventListener('TASK_UPDATED', currentHandlers.taskUpdated);
+  webSocketService.addEventListener('TASK_STATUS_CHANGED', currentHandlers.taskStatusChanged);
+  webSocketService.addEventListener('TASK_DELETED', currentHandlers.taskDeleted);
 });
