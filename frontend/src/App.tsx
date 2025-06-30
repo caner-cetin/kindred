@@ -1,3 +1,4 @@
+import { Provider } from 'jotai';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AuthPage } from '@/components/auth/AuthPage';
 import { Dashboard } from '@/components/Dashboard';
@@ -14,10 +15,12 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-      <Toaster position="top-right" />
-    </AuthProvider>
+    <Provider>
+      <AuthProvider>
+        <AppContent />
+        <Toaster position="top-right" />
+      </AuthProvider>
+    </Provider>
   );
 }
 

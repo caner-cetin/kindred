@@ -196,3 +196,4 @@ $RECYCLE.BIN/
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Node,Linux,macOS,Windows,VisualStudioCode
 
 private
+sqlite.db

@@ -1,9 +1,16 @@
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { TaskManagement } from '@/components/TaskManagement';
 
 export function Dashboard() {
   const { user, logout } = useAuth();
+  const [activeTab, setActiveTab] = useState('overview');
+
+  if (activeTab === 'tasks') {
+    return <TaskManagement onBack={() => setActiveTab('overview')} />;
+  }
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -15,6 +22,21 @@ export function Dashboard() {
           </div>
           <Button variant="outline" onClick={logout}>
             Sign Out
+          </Button>
+        </div>
+
+        <div className="flex gap-4 mb-8">
+          <Button
+            variant={activeTab === 'overview' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('overview')}
+          >
+            Overview
+          </Button>
+          <Button
+            variant={activeTab === 'tasks' ? 'default' : 'outline'}
+            onClick={() => setActiveTab('tasks')}
+          >
+            Tasks
           </Button>
         </div>
 
@@ -36,13 +58,14 @@ export function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card data-card>
+          <Card data-card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('tasks')}>
             <CardHeader>
               <CardTitle>Tasks</CardTitle>
-              <CardDescription>Manage your tasks</CardDescription>
+              <CardDescription>Manage your tasks and projects</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Task management coming soon...</p>
+              <p className="text-muted-foreground mb-4">Click here to manage your tasks, create new ones, and track progress.</p>
+              <Button className="w-full">Go to Tasks</Button>
             </CardContent>
           </Card>
 
