@@ -11,10 +11,10 @@ import { useTaskManagement } from '@/hooks/useTaskManagement';
 import { TaskStats } from '@/components/TaskStats';
 
 const priorityColors = {
-  'Low': 'bg-green-100 text-green-800',
-  'Medium': 'bg-yellow-100 text-yellow-800',
-  'High': 'bg-orange-100 text-orange-800',
-  'Critical': 'bg-red-100 text-red-800',
+  'Low': 'bg-green-100 text-green-800 border border-green-200',
+  'Medium': 'bg-orange-100 text-orange-800 border border-orange-200',
+  'High': 'bg-red-100 text-red-800 border border-red-200',
+  'Critical': 'bg-purple-100 text-purple-800 border border-purple-200',
 };
 
 export function TaskManagement({ onBack }: { onBack?: () => void }) {
