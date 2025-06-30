@@ -41,7 +41,7 @@ class WebSocketService {
     }
 
     this.authToken = token;
-    const wsUrl = `ws://apitrack.cansu.dev/ws`;
+    const wsUrl = `wss://apitrack.cansu.dev/ws`;
 
     try {
       this.ws = new WebSocket(wsUrl);
